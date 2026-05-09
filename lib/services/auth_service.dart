@@ -79,7 +79,48 @@ class AuthService {
   }
 
   static Future<void> logout() async {
+    try {
+      await ApiService.post('/logout/', {});
+    } catch (_) {}
     await ApiService.clearTokens();
+  }
+
+  static Future<bool> sendOtp({
+    required String mfaToken,
+    required String method,
+  }) async {
+    try {
+      final response = await ApiService.post('/mfa/send-otp/', {
+        'mfa_token': mfaToken,
+        'method': method,
+      });
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<AuthResult> verifyMfa({
+    required String mfaToken,
+    required String code,
+    required String method,
+  }) async {
+    try {
+      final response = await ApiService.post('/mfa/verify/', {
+        'mfa_token': mfaToken,
+        'code': code,
+        'method': method,
+      });
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        await ApiService.saveTokens(data['access'], data['refresh']);
+        return AuthResult(success: true, user: data['user']);
+      }
+      final msg = data['detail'] ?? 'Verification failed';
+      return AuthResult(success: false, error: msg.toString());
+    } catch (_) {
+      return AuthResult(success: false, error: 'Network error. Please try again.');
+    }
   }
 
   static Future<Map<String, dynamic>?> getCurrentUser() async {

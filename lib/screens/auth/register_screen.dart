@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -55,9 +56,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: BoxDecoration(gradient: context.novaBgGradient),
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -69,15 +71,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary),
+                    icon: Icon(Icons.arrow_back_ios_new_rounded, color: context.novaTextSecondary),
                   ),
                   const SizedBox(height: 20),
-                  const Text('Create\nAccount', style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2)),
+                  Text(
+                    l10n.t('createAccountTitle'),
+                    style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: context.novaTextPrimary, height: 1.2),
+                  ),
                   const SizedBox(height: 8),
-                  const Text('Join NovaGard and verify your identity', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                  Text(l10n.t('registerSubtitle'), style: TextStyle(color: context.novaTextSecondary, fontSize: 16)),
                   const SizedBox(height: 12),
-                  // Progress indicator: step 1 of 3
-                  _StepIndicator(current: 1, total: 3, label: 'Personal Info'),
+                  _StepIndicator(current: 1, total: 3, label: l10n.t('personalInfo')),
                   const SizedBox(height: 28),
                   if (_error != null) ...[
                     _ErrorBanner(message: _error!),
@@ -85,37 +89,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   Row(
                     children: [
-                      Expanded(child: _buildField(_firstNameCtrl, 'First Name', Icons.badge_outlined)),
+                      Expanded(child: _buildField(context, _firstNameCtrl, l10n.t('firstName'), Icons.badge_outlined, l10n: l10n)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildField(_lastNameCtrl, 'Last Name', Icons.badge_outlined)),
+                      Expanded(child: _buildField(context, _lastNameCtrl, l10n.t('lastName'), Icons.badge_outlined, l10n: l10n)),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildField(_emailCtrl, 'Email address', Icons.email_outlined,
-                      type: TextInputType.emailAddress,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        if (!v.contains('@')) return 'Invalid email';
-                        return null;
-                      }),
+                  _buildField(
+                    context,
+                    _emailCtrl,
+                    l10n.t('emailAddress'),
+                    Icons.email_outlined,
+                    type: TextInputType.emailAddress,
+                    l10n: l10n,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return l10n.t('required');
+                      if (!v.contains('@')) return l10n.t('invalidEmail');
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: 16),
-                  _buildField(_phoneCtrl, 'Phone (e.g. +1234567890)', Icons.phone_outlined,
-                      type: TextInputType.phone),
+                  _buildField(context, _phoneCtrl, l10n.t('phone'), Icons.phone_outlined, type: TextInputType.phone, l10n: l10n),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordCtrl,
                     obscureText: _obscure,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.novaTextPrimary),
                     decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textHint),
+                      labelText: l10n.t('password'),
+                      prefixIcon: Icon(Icons.lock_outline_rounded, color: context.novaTextHint),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.textHint),
+                        icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: context.novaTextHint),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
                     validator: (v) {
-                      if (v == null || v.length < 8) return 'Minimum 8 characters';
+                      if (v == null || v.length < 8) return l10n.t('min8chars');
                       return null;
                     },
                   ),
@@ -123,16 +132,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _password2Ctrl,
                     obscureText: _obscure,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      labelText: 'Confirm Password',
-                      prefixIcon: Icon(Icons.lock_outline_rounded, color: AppColors.textHint),
+                    style: TextStyle(color: context.novaTextPrimary),
+                    decoration: InputDecoration(
+                      labelText: l10n.t('confirmPassword'),
+                      prefixIcon: Icon(Icons.lock_outline_rounded, color: context.novaTextHint),
                     ),
-                    validator: (v) => v != _passwordCtrl.text ? 'Passwords do not match' : null,
+                    validator: (v) => v != _passwordCtrl.text ? l10n.t('passwordsNoMatch') : null,
                   ),
                   const SizedBox(height: 36),
                   GradientButton(
-                    label: 'Continue',
+                    label: l10n.t('continueBtn'),
                     onPressed: _submit,
                     isLoading: _loading,
                     icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
@@ -141,10 +150,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Already have an account? ', style: TextStyle(color: AppColors.textSecondary)),
+                      Text(l10n.t('alreadyHaveAccount'), style: TextStyle(color: context.novaTextSecondary)),
                       GestureDetector(
                         onTap: () => context.go('/login'),
-                        child: const Text('Sign In', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                        child: Text(l10n.t('signIn'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
@@ -158,17 +167,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon,
-      {TextInputType? type, String? Function(String?)? validator}) {
+  Widget _buildField(
+    BuildContext context,
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
+    TextInputType? type,
+    String? Function(String?)? validator,
+    required AppLocalizations l10n,
+  }) {
     return TextFormField(
       controller: ctrl,
       keyboardType: type,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: context.novaTextPrimary),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.textHint),
+        prefixIcon: Icon(icon, color: context.novaTextHint),
       ),
-      validator: validator ?? (v) => v == null || v.isEmpty ? 'Required' : null,
+      validator: validator ?? (v) => v == null || v.isEmpty ? l10n.t('required') : null,
     );
   }
 }
@@ -194,7 +210,7 @@ class _StepIndicator extends StatelessWidget {
                   duration: const Duration(milliseconds: 300),
                   height: 4,
                   decoration: BoxDecoration(
-                    color: active ? AppColors.primary : AppColors.cardBorder,
+                    color: active ? AppColors.primary : context.novaCardBorder,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -203,7 +219,7 @@ class _StepIndicator extends StatelessWidget {
           }),
         ),
         const SizedBox(height: 8),
-        Text('Step $current of $total – $label', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text('Step $current of $total – $label', style: TextStyle(fontSize: 12, color: context.novaTextSecondary)),
       ],
     );
   }
@@ -218,9 +234,9 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.12),
+        color: AppColors.error.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

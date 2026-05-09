@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/identity_service.dart';
 import '../../services/auth_service.dart';
 
@@ -50,17 +51,17 @@ class _VerificationPendingScreenState extends State<VerificationPendingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: BoxDecoration(gradient: context.novaBgGradient),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Spacer(flex: 2),
-                // Animated icon
+                const SizedBox(height: 60),
                 AnimatedBuilder(
                   animation: _pulseController,
                   builder: (_, __) => Transform.scale(
@@ -72,13 +73,13 @@ class _VerificationPendingScreenState extends State<VerificationPendingScreen>
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.warning.withOpacity(0.8 + 0.2 * _pulseController.value),
-                            AppColors.primary.withOpacity(0.8 + 0.2 * _pulseController.value),
+                            AppColors.warning.withValues(alpha: 0.8 + 0.2 * _pulseController.value),
+                            AppColors.primary.withValues(alpha: 0.8 + 0.2 * _pulseController.value),
                           ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.warning.withOpacity(0.3 * _pulseController.value),
+                            color: AppColors.warning.withValues(alpha: 0.3 * _pulseController.value),
                             blurRadius: 30,
                             spreadRadius: 10,
                           )
@@ -89,23 +90,22 @@ class _VerificationPendingScreenState extends State<VerificationPendingScreen>
                   ),
                 ),
                 const SizedBox(height: 36),
-                const Text(
-                  'Verification\nIn Progress',
+                Text(
+                  l10n.t('verificationInProgress'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2),
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: context.novaTextPrimary, height: 1.2),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Our team is reviewing your identity documents. This usually takes 5–10 minutes.',
+                Text(
+                  l10n.t('pendingSubtitle'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16, height: 1.6),
+                  style: TextStyle(color: context.novaTextSecondary, fontSize: 16, height: 1.6),
                 ),
                 const SizedBox(height: 40),
-                // Timeline
-                _VerificationTimeline(),
-                const Spacer(flex: 2),
+                _VerificationTimeline(l10n: l10n),
+                const SizedBox(height: 60),
                 GradientButton(
-                  label: _checking ? 'Checking...' : 'Check Status',
+                  label: _checking ? l10n.t('checking') : l10n.t('checkStatus'),
                   onPressed: _checking ? null : _checkStatus,
                   isLoading: _checking,
                   icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
@@ -116,7 +116,7 @@ class _VerificationPendingScreenState extends State<VerificationPendingScreen>
                     await AuthService.logout();
                     if (context.mounted) context.go('/welcome');
                   },
-                  child: const Text('Sign Out', style: TextStyle(color: AppColors.textSecondary)),
+                  child: Text(l10n.t('signOut'), style: TextStyle(color: context.novaTextSecondary)),
                 ),
                 const SizedBox(height: 32),
               ],
@@ -129,12 +129,15 @@ class _VerificationPendingScreenState extends State<VerificationPendingScreen>
 }
 
 class _VerificationTimeline extends StatelessWidget {
+  final AppLocalizations l10n;
+  const _VerificationTimeline({required this.l10n});
+
   @override
   Widget build(BuildContext context) {
-    const steps = [
-      (Icons.upload_rounded, 'Documents submitted', true),
-      (Icons.search_rounded, 'Identity review', true),
-      (Icons.verified_rounded, 'Verification complete', false),
+    final steps = [
+      (Icons.upload_rounded, l10n.t('submittedDocs'), true),
+      (Icons.search_rounded, l10n.t('identityReview'), true),
+      (Icons.verified_rounded, l10n.t('verificationComplete'), false),
     ];
     return Column(
       children: steps.asMap().entries.map((entry) {
@@ -148,18 +151,25 @@ class _VerificationTimeline extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: step.$3 ? AppColors.primary.withOpacity(0.2) : AppColors.surfaceElevated,
+                    color: step.$3 ? AppColors.primary.withValues(alpha: 0.2) : context.novaSurfaceElevated,
                     shape: BoxShape.circle,
-                    border: Border.all(color: step.$3 ? AppColors.primary : AppColors.cardBorder),
+                    border: Border.all(color: step.$3 ? AppColors.primary : context.novaCardBorder),
                   ),
-                  child: Icon(step.$1, size: 18, color: step.$3 ? AppColors.primary : AppColors.textHint),
+                  child: Icon(step.$1, size: 18, color: step.$3 ? AppColors.primary : context.novaTextHint),
                 ),
                 if (i < steps.length - 1)
-                  Container(width: 2, height: 24, color: i == 0 ? AppColors.primary : AppColors.cardBorder),
+                  Container(width: 2, height: 24, color: i == 0 ? AppColors.primary : context.novaCardBorder),
               ],
             ),
             const SizedBox(width: 16),
-            Text(step.$2, style: TextStyle(color: step.$3 ? Colors.white : AppColors.textHint, fontSize: 15, fontWeight: step.$3 ? FontWeight.w500 : FontWeight.w400)),
+            Text(
+              step.$2,
+              style: TextStyle(
+                color: step.$3 ? context.novaTextPrimary : context.novaTextHint,
+                fontSize: 15,
+                fontWeight: step.$3 ? FontWeight.w500 : FontWeight.w400,
+              ),
+            ),
           ],
         );
       }).toList(),

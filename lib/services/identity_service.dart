@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'api_service.dart';
 
 class IdentityStatus {
@@ -42,12 +42,12 @@ class IdentityService {
 
   static Future<({bool success, String? error})> uploadDocuments({
     required String documentType,
-    required File frontImage,
-    File? backImage,
-    required File selfieImage,
+    required Uint8List frontImage,
+    Uint8List? backImage,
+    required Uint8List selfieImage,
   }) async {
     try {
-      final files = <String, File>{
+      final bytes = <String, Uint8List>{
         'front_image': frontImage,
         'selfie_image': selfieImage,
         if (backImage != null) 'back_image': backImage,
@@ -55,7 +55,7 @@ class IdentityService {
       final response = await ApiService.multipartPost(
         '/identity/upload/',
         fields: {'document_type': documentType},
-        files: files,
+        bytes: bytes,
       );
       if (response.statusCode == 201) return (success: true, error: null);
       final data = jsonDecode(response.body);

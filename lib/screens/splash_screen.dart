@@ -30,23 +30,30 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     await Future.delayed(const Duration(milliseconds: 2000));
     if (!mounted) return;
 
-    const storage = FlutterSecureStorage();
-    final token = await storage.read(key: 'access_token');
+    try {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'access_token');
 
-    if (token == null) {
-      context.go('/welcome');
-      return;
-    }
+      if (token == null) {
+        if (mounted) context.go('/welcome');
+        return;
+      }
 
-    final status = await IdentityService.getStatus();
-    if (!mounted) return;
+      final status = await IdentityService.getStatus();
+      if (!mounted) return;
 
-    if (!status.hasDocument || status.isRejected) {
-      context.go('/identity/document-type');
-    } else if (status.isPending) {
-      context.go('/identity/pending');
-    } else {
-      context.go('/home');
+      String route;
+      if (!status.hasDocument || status.isRejected) {
+        route = '/identity/document-type';
+      } else if (status.isPending) {
+        route = '/identity/pending';
+      } else {
+        route = '/home';
+      }
+      if (mounted) context.go(route);
+    } catch (e) {
+      // If something fails (e.g., storage error), go to welcome securely
+      if (mounted) context.go('/welcome');
     }
   }
 

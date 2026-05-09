@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+export '../widgets/gradient_button.dart';
 
 class AppColors {
+  // ── Dark palette ────────────────────────────────────────────────────────────
   static const background = Color(0xFF0A0E21);
   static const surface = Color(0xFF141829);
   static const surfaceElevated = Color(0xFF1C2235);
@@ -18,7 +20,7 @@ class AppColors {
 
   static const primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
+    end: Alignment.bottomCenter,
     colors: [Color(0xFF4F6AF5), Color(0xFF7B5EA7)],
   );
 
@@ -26,6 +28,22 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [Color(0xFF0D1229), Color(0xFF0A0E21)],
+  );
+
+  // ── Light palette ────────────────────────────────────────────────────────────
+  static const lightBackground = Color(0xFFF0F3FF);
+  static const lightSurface = Color(0xFFFFFFFF);
+  static const lightSurfaceElevated = Color(0xFFF0F2FF);
+  static const lightCardBorder = Color(0xFFE0E4FF);
+  static const lightTextPrimary = Color(0xFF1A1D2E);
+  static const lightTextSecondary = Color(0xFF5A6080);
+  static const lightTextHint = Color(0xFF9099C0);
+  static const lightDivider = Color(0xFFE8EAF6);
+
+  static const lightBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFF0F3FF), Color(0xFFE8EDF8)],
   );
 }
 
@@ -42,6 +60,27 @@ class AppTheme {
         error: AppColors.error,
       ),
       fontFamily: 'SF Pro Display',
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surfaceElevated,
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+      ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.5),
         displayMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.textPrimary, letterSpacing: -0.3),
@@ -50,7 +89,7 @@ class AppTheme {
         titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
         bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.textSecondary),
         bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.textSecondary),
-        labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary, letterSpacing: 0.3),
+        labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 0.3),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -64,98 +103,109 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          backgroundColor: AppColors.surface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.cardBorder),
+          ),
         ),
       ),
+    );
+  }
+
+  static ThemeData get light {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.lightBackground,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.accent,
+        surface: AppColors.lightSurface,
+        error: AppColors.error,
+      ),
+      fontFamily: 'SF Pro Display',
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        fillColor: AppColors.lightSurface,
+        labelStyle: const TextStyle(color: AppColors.lightTextSecondary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.cardBorder),
+          borderSide: const BorderSide(color: AppColors.lightCardBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.cardBorder),
+          borderSide: const BorderSide(color: AppColors.lightCardBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error),
         ),
-        hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 15),
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.lightTextPrimary, letterSpacing: -0.5),
+        displayMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.lightTextPrimary, letterSpacing: -0.3),
+        headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary),
+        titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.lightTextPrimary),
+        titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.lightTextPrimary),
+        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: AppColors.lightTextSecondary),
+        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.lightTextSecondary),
+        labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary, letterSpacing: 0.3),
       ),
-      cardTheme: CardTheme(
-        color: AppColors.surface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: AppColors.cardBorder),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 0,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0.3),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.lightSurface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.lightCardBorder),
+          ),
         ),
       ),
     );
   }
 }
 
-// Reusable gradient button
-class GradientButton extends StatelessWidget {
-  final String label;
-  final VoidCallback? onPressed;
-  final bool isLoading;
-  final Widget? icon;
+// ── Adaptive color extension ────────────────────────────────────────────────────
+extension NovaTheme on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
 
-  const GradientButton({
-    super.key,
-    required this.label,
-    this.onPressed,
-    this.isLoading = false,
-    this.icon,
-  });
+  LinearGradient get novaBgGradient =>
+      isDark ? AppColors.backgroundGradient : AppColors.lightBackgroundGradient;
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isLoading ? null : onPressed,
-      child: Container(
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          gradient: onPressed == null || isLoading
-              ? const LinearGradient(colors: [Color(0xFF2A3060), Color(0xFF3A2860)])
-              : AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: onPressed != null && !isLoading
-              ? [BoxShadow(color: AppColors.primary.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))]
-              : null,
-        ),
-        child: Center(
-          child: isLoading
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[icon!, const SizedBox(width: 8)],
-                    Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 0.3)),
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
+  Color get novaSurface =>
+      isDark ? AppColors.surface : AppColors.lightSurface;
+
+  Color get novaSurfaceElevated =>
+      isDark ? AppColors.surfaceElevated : AppColors.lightSurfaceElevated;
+
+  Color get novaCardBorder =>
+      isDark ? AppColors.cardBorder : AppColors.lightCardBorder;
+
+  Color get novaTextPrimary =>
+      isDark ? AppColors.textPrimary : AppColors.lightTextPrimary;
+
+  Color get novaTextSecondary =>
+      isDark ? AppColors.textSecondary : AppColors.lightTextSecondary;
+
+  Color get novaTextHint =>
+      isDark ? AppColors.textHint : AppColors.lightTextHint;
+
+  Color get novaDivider =>
+      isDark ? AppColors.divider : AppColors.lightDivider;
 }

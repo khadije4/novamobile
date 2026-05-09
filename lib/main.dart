@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
+import 'providers/app_settings_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/mfa_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'screens/identity/document_type_screen.dart';
 import 'screens/identity/document_capture_screen.dart';
 import 'screens/identity/selfie_capture_screen.dart';
@@ -20,7 +26,12 @@ void main() {
     statusBarIconBrightness: Brightness.light,
   ));
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const NovaGardApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AppSettingsProvider(),
+      child: const NovaGardApp(),
+    ),
+  );
 }
 
 final _router = GoRouter(
@@ -30,6 +41,17 @@ final _router = GoRouter(
     GoRoute(path: '/welcome', builder: (_, __) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
     GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+    GoRoute(
+      path: '/mfa',
+      builder: (_, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return MfaScreen(
+          mfaToken: extra['mfaToken'] as String,
+          mfaMethods: List<String>.from(extra['mfaMethods'] as List),
+        );
+      },
+    ),
+    GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
     GoRoute(path: '/identity/document-type', builder: (_, __) => const DocumentTypeScreen()),
     GoRoute(
       path: '/identity/capture-document',
@@ -59,10 +81,21 @@ class NovaGardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettingsProvider>();
     return MaterialApp.router(
       title: 'NovaGard',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: settings.themeMode,
+      locale: settings.locale,
+      supportedLocales: const [Locale('fr'), Locale('ar')],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: _router,
     );
   }

@@ -1,7 +1,8 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/identity_service.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -17,19 +18,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
   String? _error;
 
   String get _documentType => widget.data['documentType'] as String;
-  String? get _frontPath => widget.data['frontImagePath'] as String?;
-  String? get _backPath => widget.data['backImagePath'] as String?;
-  String? get _selfiePath => widget.data['selfiePath'] as String?;
+  Uint8List? get _frontBytes => widget.data['frontImageBytes'] as Uint8List?;
+  Uint8List? get _backBytes => widget.data['backImageBytes'] as Uint8List?;
+  Uint8List? get _selfieBytes => widget.data['selfieBytes'] as Uint8List?;
 
   Future<void> _submit() async {
-    if (_frontPath == null || _selfiePath == null) return;
-    setState(() { _loading = true; _error = null; });
+    if (_frontBytes == null || _selfieBytes == null) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     final result = await IdentityService.uploadDocuments(
       documentType: _documentType,
-      frontImage: File(_frontPath!),
-      backImage: _backPath != null ? File(_backPath!) : null,
-      selfieImage: File(_selfiePath!),
+      frontImage: _frontBytes!,
+      backImage: _backBytes,
+      selfieImage: _selfieBytes!,
     );
 
     if (!mounted) return;
@@ -44,101 +48,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: BoxDecoration(gradient: context.novaBgGradient),
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => context.pop(),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textSecondary),
-                    ),
-                    const Expanded(
-                      child: Text('Review & Submit', textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
-              ),
+              _buildHeader(context, l10n),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Almost there! Review your documents before submitting.',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 15, height: 1.5),
+                      Text(
+                        l10n.t('almostThere'),
+                        style: TextStyle(color: context.novaTextSecondary, fontSize: 15, height: 1.5),
                       ),
                       const SizedBox(height: 28),
                       if (_error != null) ...[
                         _ErrorBanner(message: _error!),
                         const SizedBox(height: 20),
                       ],
-                      // Document type badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.verified_rounded, color: AppColors.primary, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              _documentType == 'id_card' ? 'National ID Card' : 'Passport',
-                              style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildDocumentTypeBadge(l10n),
                       const SizedBox(height: 24),
-                      const Text('Documents', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text(l10n.t('documents'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.novaTextPrimary)),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(child: _ImagePreview(path: _frontPath, label: _documentType == 'passport' ? 'Photo Page' : 'Front')),
-                          if (_backPath != null) ...[
-                            const SizedBox(width: 12),
-                            Expanded(child: _ImagePreview(path: _backPath, label: 'Back')),
-                          ],
-                        ],
-                      ),
+                      _buildImageRow(l10n),
                       const SizedBox(height: 24),
-                      const Text('Selfie', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                      Text(l10n.t('selfie'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: context.novaTextPrimary)),
                       const SizedBox(height: 12),
-                      _SelfiePreview(path: _selfiePath),
+                      _SelfiePreview(bytes: _selfieBytes),
                       const SizedBox(height: 28),
-                      // Info box
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.cardBorder),
-                        ),
-                        child: Column(
-                          children: const [
-                            _CheckItem(text: 'All text is clearly visible'),
-                            SizedBox(height: 8),
-                            _CheckItem(text: 'No blurry or cropped images'),
-                            SizedBox(height: 8),
-                            _CheckItem(text: 'Selfie matches document photo'),
-                          ],
-                        ),
-                      ),
+                      _buildChecklist(l10n),
                       const SizedBox(height: 32),
                       GradientButton(
-                        label: 'Submit for Verification',
+                        label: l10n.t('submitForVerification'),
                         onPressed: _submit,
                         isLoading: _loading,
                         icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
@@ -154,32 +100,128 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () => context.pop(),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: context.novaTextSecondary),
+              ),
+              Expanded(
+                child: Text(
+                  l10n.t('reviewAndSubmit'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: context.novaTextPrimary),
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentTypeBadge(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.verified_rounded, color: AppColors.primary, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            _documentType == 'id_card' ? l10n.t('nationalIdCard') : l10n.t('passport'),
+            style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageRow(AppLocalizations l10n) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ImagePreview(
+            bytes: _frontBytes,
+            label: _documentType == 'passport' ? l10n.t('photoPage') : l10n.t('front'),
+            aspectRatio: 1.58,
+          ),
+        ),
+        if (_backBytes != null) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: _ImagePreview(
+              bytes: _backBytes,
+              label: l10n.t('back'),
+              aspectRatio: 1.58,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildChecklist(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.novaSurfaceElevated,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.novaCardBorder),
+      ),
+      child: Column(
+        children: [
+          _CheckItem(text: l10n.t('textVisible')),
+          const SizedBox(height: 8),
+          _CheckItem(text: l10n.t('noBlurry')),
+          const SizedBox(height: 8),
+          _CheckItem(text: l10n.t('selfieMatches')),
+        ],
+      ),
+    );
+  }
 }
 
+// ========== Helper Widgets ==========
+
 class _ImagePreview extends StatelessWidget {
-  final String? path;
+  final Uint8List? bytes;
   final String label;
-  const _ImagePreview({required this.path, required this.label});
+  final double aspectRatio;
+
+  const _ImagePreview({required this.bytes, required this.label, required this.aspectRatio});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        Text(label, style: TextStyle(fontSize: 13, color: context.novaTextSecondary)),
         const SizedBox(height: 8),
         AspectRatio(
-          aspectRatio: 1.58,
+          aspectRatio: aspectRatio,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.cardBorder),
+              border: Border.all(color: context.novaCardBorder),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(11),
-              child: path != null
-                  ? Image.file(File(path!), fit: BoxFit.cover)
-                  : const Center(child: Icon(Icons.broken_image_outlined, color: AppColors.textHint)),
+              child: bytes != null
+                  ? Image.memory(bytes!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const _ImagePlaceholder())
+                  : const _ImagePlaceholder(),
             ),
           ),
         ),
@@ -189,8 +231,8 @@ class _ImagePreview extends StatelessWidget {
 }
 
 class _SelfiePreview extends StatelessWidget {
-  final String? path;
-  const _SelfiePreview({required this.path});
+  final Uint8List? bytes;
+  const _SelfiePreview({required this.bytes});
 
   @override
   Widget build(BuildContext context) {
@@ -205,12 +247,34 @@ class _SelfiePreview extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(70),
-            child: path != null
-                ? Image.file(File(path!), fit: BoxFit.cover)
-                : const Center(child: Icon(Icons.face_rounded, size: 60, color: AppColors.textHint)),
+            child: bytes != null
+                ? Image.memory(bytes!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const _SelfiePlaceholder())
+                : const _SelfiePlaceholder(),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ImagePlaceholder extends StatelessWidget {
+  const _ImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(Icons.broken_image_outlined, color: context.novaTextHint, size: 40),
+    );
+  }
+}
+
+class _SelfiePlaceholder extends StatelessWidget {
+  const _SelfiePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Icon(Icons.face_rounded, size: 60, color: context.novaTextHint),
     );
   }
 }
@@ -225,7 +289,7 @@ class _CheckItem extends StatelessWidget {
       children: [
         const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 18),
         const SizedBox(width: 10),
-        Text(text, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        Text(text, style: TextStyle(color: context.novaTextSecondary, fontSize: 14)),
       ],
     );
   }
@@ -240,9 +304,9 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.12),
+        color: AppColors.error.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
